@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "app.dynamicdragon.ai_system_architecture"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -31,9 +31,9 @@ android {
     defaultConfig {
         applicationId = "app.dynamicdragon.ai_system_architecture"
         minSdk = 23
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        targetSdk = 36
+        versionCode = 2
+        versionName = "2.0.1"
     }
 
     signingConfigs {

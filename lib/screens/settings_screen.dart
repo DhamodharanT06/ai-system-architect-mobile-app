@@ -26,20 +26,20 @@ class SettingsScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const _SectionHeader(title: 'Usage Stats'),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.generating_tokens_outlined,
-                    label: 'Blueprints\nGenerated',
-                    value: '${adService.generationCount}',
-                    color: AppColors.accent,
-                    alignment: Alignment.center,
-                  ),
-                ),
-                const SizedBox(width: 12),
+            // const _SectionHeader(title: 'Usage Stats'),
+            // const SizedBox(height: 12),
+            // Row(
+            //   children: [
+                // Expanded(
+                //   child: _StatCard(
+                //     icon: Icons.generating_tokens_outlined,
+                //     label: 'Blueprints\nGenerated',
+                //     value: '${adService.generationCount}',
+                //     color: AppColors.accent,
+                //     alignment: Alignment.center,
+                //   ),
+                // ),
+                // const SizedBox(width: 12),
                 // Expanded(
                 //   child: _StatCard(
                 //     icon: Icons.play_circle_outline,
@@ -48,8 +48,8 @@ class SettingsScreen extends StatelessWidget {
                 //     color: AppColors.laneAI,
                 //   ),
                 // ),
-              ],
-            ),
+            //   ],
+            // ),
             const SizedBox(height: 28),
             const _SectionHeader(title: 'About'),
             const SizedBox(height: 12),
@@ -118,7 +118,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'Version 1.0.0',
+                            'Version 2.0.0',
                             style: TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 12,
@@ -131,10 +131,11 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Generate comprehensive project blueprints powered by AI. '
-                    'Includes architecture diagrams, tech stack recommendations, '
-                    'workflow steps, runtime execution flows, interactive UI previews, '
-                    'and curated learning references.',
+                    '\n\tGenerate comprehensive project blueprints powered by AI. '
+                    '\n\n'
+                    '\tIncludes: \n\t- Architecture diagrams, \n\t- Tech stack recommendations, '
+                    '\n\t- Workflow steps, \n\t- Runtime execution flows, \n\t- Interactive UI previews, '
+                    'and \n\t- Curated learning references.',
                     style: TextStyle(
                       color: AppColors.textSub,
                       fontSize: 13,
