@@ -17,7 +17,7 @@ class AdService extends ChangeNotifier {
   };
 
   /// Fallback threshold for any feature not listed above.
-  static const _defaultThreshold = 3;
+  static const _defaultThreshold = 2;
 
   // ── Ad Unit IDs ───────────────────────────────────────────────────────────
   static String get _rewardedAdUnitId {

@@ -15,8 +15,8 @@ class AdKeys {
   static const String _rewardAd = 'ca-app-pub-5197112083845726/2055303339';
   static const String _bannerAd = 'ca-app-pub-5197112083845726/5067077114';
 
-  static const int adsPerReward = 3;
-  static const int adsPerRewardPreview = 3;
+  static const int adsPerReward = 2;
+  static const int adsPerRewardPreview = 2;
 
   String get rewardAdKey => _rewardAd;
   String get bannerAdKey => _bannerAd;

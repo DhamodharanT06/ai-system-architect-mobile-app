@@ -10,6 +10,7 @@ import 'services/ad_service.dart';
 import 'services/api_service.dart';
 import 'services/blueprint_provider.dart';
 import 'screens/home_screen.dart';
+import 'services/review_service.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -40,6 +41,7 @@ void main() async {
   Hive.registerAdapter(RealWorldExampleAdapter());
   Hive.registerAdapter(LearningReferenceAdapter());
   Hive.registerAdapter(RuntimeFlowStepAdapter());
+
   await Hive.openBox<Blueprint>('blueprints');
 
   // AdMob
@@ -48,6 +50,9 @@ void main() async {
 
   final apiService = ApiService();
   await apiService.initialise();
+
+  // Record first launch timestamp for in-app review timing
+  await ReviewService.instance.recordLaunch();
 
   runApp(
     MultiProvider(
@@ -65,6 +70,7 @@ void main() async {
 
 class AIArchitectApp extends StatefulWidget {
   const AIArchitectApp({super.key});
+
   @override
   State<AIArchitectApp> createState() => _AIArchitectAppState();
 }
@@ -73,40 +79,43 @@ class _AIArchitectAppState extends State<AIArchitectApp> {
   @override
   void initState() {
     super.initState();
-    // Check for updates after first frame so the app is fully rendered first
+
+    // Check for updates after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
   }
 
   Future<void> _checkForUpdate() async {
     try {
+      // Google Play Store only
       final newVersion = NewVersionPlus(
-        // Must match your Play Store package name exactly
         androidId: 'app.dynamicdragon.ai_system_architecture',
       );
 
       final status = await newVersion.getVersionStatus();
+
       if (status == null) return;
 
-      // Only show if there is actually a newer version available
+      // Only show dialog when a newer Play Store version exists
       if (status.canUpdate && mounted) {
         _showUpdateDialog(status);
       }
     } catch (e) {
-      // Network errors, Play Store unavailable, etc. — silently ignore
-      debugPrint('Version check failed: $e');
+      // Ignore Play Store/network errors
+      debugPrint('Play Store version check failed: $e');
     }
   }
 
   void _showUpdateDialog(VersionStatus status) {
     final ctx = navigatorKey.currentContext ?? context;
+
     showDialog<void>(
       context: ctx,
-      barrierDismissible: true, // tap outside = Later
+      barrierDismissible: true,
       builder: (_) => _UpdateDialog(status: status),
     );
   }
 
-  // Global navigator key so the dialog can be shown from initState
+  // Global navigator key
   static final navigatorKey = GlobalKey<NavigatorState>();
 
   @override
@@ -122,11 +131,33 @@ class _AIArchitectAppState extends State<AIArchitectApp> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Non-blocking update dialog
+// Google Play Store update dialog
 // ─────────────────────────────────────────────────────────────────────────────
+
 class _UpdateDialog extends StatelessWidget {
   final VersionStatus status;
+
   const _UpdateDialog({required this.status});
+
+  // Your Google Play Store application ID
+  static const String _playStoreUrl =
+      'https://play.google.com/store/apps/details?id=app.dynamicdragon.ai_system_architecture';
+
+  Future<void> _openPlayStore(BuildContext context) async {
+    final uri = Uri.parse(_playStoreUrl);
+
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open Google Play Store')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Could not open Google Play Store: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +180,7 @@ class _UpdateDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Top accent bar ──────────────────────────────────────────
+            // Top accent bar
             Container(
               height: 5,
               decoration: const BoxDecoration(
@@ -184,7 +215,9 @@ class _UpdateDialog extends StatelessWidget {
                           size: 22,
                         ),
                       ),
+
                       const SizedBox(width: 14),
+
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,7 +232,7 @@ class _UpdateDialog extends StatelessWidget {
                             ),
                             SizedBox(height: 2),
                             Text(
-                              'A new version is ready on Play Store',
+                              'A new version is ready on Google Play',
                               style: TextStyle(
                                 color: AppColors.textMuted,
                                 fontSize: 11,
@@ -230,11 +263,13 @@ class _UpdateDialog extends StatelessWidget {
                             color: AppColors.textMuted,
                           ),
                         ),
+
                         Container(
                           width: 1,
                           height: 32,
                           color: AppColors.border,
                         ),
+
                         Expanded(
                           child: _VersionBadge(
                             label: 'Latest',
@@ -248,24 +283,16 @@ class _UpdateDialog extends StatelessWidget {
 
                   const SizedBox(height: 22),
 
-                  // Buttons
+                  // Update button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () async {
+                      onPressed: () {
                         Navigator.pop(context);
-
-                        final uri = Uri.parse(
-                          'https://play.google.com/store/apps/details?id=app.dynamicdragon.ai_system_architecture',
-                        );
-
-                        await launchUrl(
-                          uri,
-                          mode: LaunchMode.externalApplication,
-                        );
+                        _openPlayStore(context);
                       },
-                      icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                      label: const Text('Update Now'),
+                      icon: const Icon(Icons.shop_rounded, size: 17),
+                      label: const Text('Update from Google Play'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         foregroundColor: Colors.black,
@@ -283,6 +310,7 @@ class _UpdateDialog extends StatelessWidget {
 
                   const SizedBox(height: 10),
 
+                  // Later button
                   SizedBox(
                     width: double.infinity,
                     child: TextButton(
@@ -315,8 +343,10 @@ class _UpdateDialog extends StatelessWidget {
 }
 
 class _VersionBadge extends StatelessWidget {
-  final String label, version;
+  final String label;
+  final String version;
   final Color color;
+
   const _VersionBadge({
     required this.label,
     required this.version,
@@ -324,25 +354,27 @@ class _VersionBadge extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.textMuted,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
-      const SizedBox(height: 4),
-      Text(
-        'v$version',
-        style: TextStyle(
-          color: color,
-          fontSize: 15,
-          fontWeight: FontWeight.w800,
+        const SizedBox(height: 4),
+        Text(
+          'v$version',
+          style: TextStyle(
+            color: color,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }

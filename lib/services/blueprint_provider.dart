@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/blueprint.dart';
+import 'review_service.dart';
 import 'api_service.dart';
 
 enum GenerationState { idle, generating, success, error }
@@ -63,8 +64,15 @@ class BlueprintProvider extends ChangeNotifier {
       _currentStep = _progressSteps.length;
       notifyListeners();
 
-      // Persist to history
+      // Request in-app review after successful generation (conditions checked inside)
       final box = Hive.box<Blueprint>('blueprints');
+      final totalGenerations =
+          box.length + 1; // +1 for the one we're about to add
+      ReviewService.instance.onBlueprintGenerated(
+        totalGenerations: totalGenerations,
+      );
+
+      // Persist to history
       await box.add(blueprint);
       _history =
           box.values.toList()
